@@ -1,4 +1,7 @@
-from app.helpers import generate_short_url
+from unittest.mock import MagicMock
+from app.helpers import generate_short_url, get_client_ip
+from starlette.datastructures import Headers
+from starlette.requests import Request
 
 def test_generate_short_url_basic():
     url = "https://www.example.com"
@@ -31,3 +34,17 @@ def test_generate_short_url_long_url():
     result = generate_short_url(url)
     assert result is not None, "The result should not be None for a long URL"
     assert len(result) <= 15, "The short URL for a long URL should be no longer than 15 characters"
+
+
+def test_get_client_ip_with_x_forwarded_for():
+    headers = Headers({'x-forwarded-for': '123.45.67.89, 98.76.54.32'})
+    request = Request(scope={'type': 'http', 'headers': headers.raw})
+    ip = get_client_ip(request)
+    assert ip == '123.45.67.89'
+
+def test_get_client_ip_without_x_forwarded_for():
+    request = MagicMock()
+    request.headers = {}
+    request.client.host = '98.76.54.32'
+    ip = get_client_ip(request)
+    assert ip == '98.76.54.32'

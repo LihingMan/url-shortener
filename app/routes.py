@@ -1,5 +1,5 @@
 from app.database import get_db
-from app.helpers import generate_short_url, get_geo_from_ip
+from app.helpers import generate_short_url, get_client_ip, get_geo_from_ip
 from app.repository.report_repository import insert_one
 from app.repository.shorturl_repository import find_or_insert_one, find_original_url, NotFound
 from fastapi import APIRouter, HTTPException, Request, Depends, Form
@@ -42,8 +42,8 @@ async def shorten_url(request: Request, url: str = Form(...), db: Session = Depe
 async def redirect_to_url(short_url: str, request: Request, db: Session = Depends(get_db)):
     try:
         short_url_obj = find_original_url(db, short_url)
-        ip_address = request.client.host
-        geolocation = await get_geo_from_ip(ip_address, short_url_obj)
+        ip_address = get_client_ip(request)
+        geolocation = await get_geo_from_ip(ip_address)
         insert_one(db, short_url_obj.id, ip_address, geolocation)
         return RedirectResponse(url=short_url_obj.original_url)
     except NotFound as e:
@@ -51,4 +51,5 @@ async def redirect_to_url(short_url: str, request: Request, db: Session = Depend
     except httpx.HTTPStatusError as e:
         log.error(f"could not get geolocation for ip: {ip_address}")
     except Exception as e:
+        log.error(f"error: {str(e)}")
         return HTMLResponse(content="<h1>Unexpected error redirecting</h1>", status_code=500)
