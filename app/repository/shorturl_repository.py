@@ -18,9 +18,9 @@ def find_or_insert_one(db: Session, short_url_hash: str, original_url: str) -> s
     db.refresh(db_shorturl)
     return db_shorturl.short_url
 
-def find_original_url(db: Session, short_url_hash: str) -> str:
+def find_original_url(db: Session, short_url_hash: str) -> ShortURL:
     exists = db.query(ShortURL).filter(ShortURL.short_url == short_url_hash).first()
     if exists is None:
         raise NotFound("Short URL does not exist!")
 
-    return exists.original_url
+    return exists

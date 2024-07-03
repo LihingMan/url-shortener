@@ -43,7 +43,7 @@ def test_find_original_url_found(mock_db_session):
     mock_db_session.query.return_value.filter.return_value.first.return_value = mock_short_url
 
     result = find_original_url(mock_db_session, short_url_hash)
-    assert result == url
+    assert result.original_url == url
 
 def test_find_original_url_not_found(mock_db_session):
     mock_db_session.query.return_value.filter.return_value.first.return_value = None

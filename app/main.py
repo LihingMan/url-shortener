@@ -12,9 +12,12 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("uvicorn.error")
 
 def run_migrations():
-    log.info("Beginning migrations")
-    alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
+    try:
+        log.info("Beginning migrations")
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+    except Exception as e:
+        log.error(str(e))
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
