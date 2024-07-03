@@ -1,3 +1,4 @@
+from fastapi import Request
 from app.models.shorturl import ShortURL
 import hashlib
 import logging
@@ -22,7 +23,13 @@ def generate_short_url(url: str) -> str:
 
     return short_url[:15]  # Ensure the length is within 15 characters
 
-async def get_geo_from_ip(ip_address: str, short_url_obj: ShortURL):
+def get_client_ip(request: Request):
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0]
+    return request.client.host
+
+async def get_geo_from_ip(ip_address: str):
     ip_api_url = f"{IP_API}/{ip_address}"
     async with httpx.AsyncClient() as client:
         response = await client.get(ip_api_url)
