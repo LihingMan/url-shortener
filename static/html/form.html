@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>URL Shortener</title>
-    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="/static/css/form_styles.css" />
   </head>
   <body>
     <h1>URL Shortener</h1>
@@ -52,6 +52,7 @@
               <strong>Short URL:</strong> <a href="${data.short_url}" target="_blank">${data.short_url}</a>
               <div class="button-container">
                   <button onclick="copyToClipboard('${data.short_url}')" title="Copy URL to clipboard">Copy</button>
+                  <button id="report-btn" class="report-btn" onclick="getReport('${data.short_url_hash}')">Report</button>
               </div>
           </div>
           <div class="result-item">
@@ -69,6 +70,10 @@
           .catch((err) => {
             console.error("Failed to copy: ", err);
           });
+      }
+
+      function getReport(short_url_hash) {
+        window.location.href = `/report/${short_url_hash}`;
       }
     </script>
   </body>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report</title>
+    <link rel="stylesheet" href="/static/css/report_styles.css" />
+  </head>
+  <body>
+    <h1>Report</h1>
+    <div class="container">
+      <div class="report-item">
+        <p><strong>Short URL:</strong> {{ short_url }}</p>
+      </div>
+
+      <h2>Visit History</h2>
+      <p>Total number of visits: {{ visit_history|length }}</p>
+      <table class="visit-history">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Region Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for visit in visit_history %}
+          <tr>
+            <td>{{ visit.visited_at }}</td>
+            <td>{{ visit.lat }}</td>
+            <td>{{ visit.lon }}</td>
+            <td>{{ visit.region_name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

@@ -24,3 +24,11 @@ def find_original_url(db: Session, short_url_hash: str) -> ShortURL:
         raise NotFound("Short URL does not exist!")
 
     return exists
+
+def find_one(db: Session, short_url_hash: str) -> ShortURL:
+    exists = db.query(ShortURL).filter(ShortURL.short_url == short_url_hash).first()
+
+    if exists is None:
+        raise NotFound("Short URL does not exist!")
+
+    return exists

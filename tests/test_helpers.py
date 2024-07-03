@@ -35,7 +35,6 @@ def test_generate_short_url_long_url():
     assert result is not None, "The result should not be None for a long URL"
     assert len(result) <= 15, "The short URL for a long URL should be no longer than 15 characters"
 
-
 def test_get_client_ip_with_x_forwarded_for():
     headers = Headers({'x-forwarded-for': '123.45.67.89, 98.76.54.32'})
     request = Request(scope={'type': 'http', 'headers': headers.raw})
