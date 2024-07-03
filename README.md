@@ -2,9 +2,16 @@
 
 CoinGecko Dev Test - URL Shortener
 
+## Deployment Link
+
+<https://url-shortener-6jx1.onrender.com>
+
 ## Implementation
 
 - Python FastAPI serving HTML
+- PostgreSQL as the database
+- Containerised for deployment with Docker
+- CI is done with Github Actions, which runs the unit tests
 
 ## How to run
 
@@ -52,11 +59,17 @@ uvicorn app.main:app --reload
 alembic revision --autogenerate -m "migration message"
 ```
 
-- To apply the migration:
+- Migrations are also automatically applied on server start
+
+- But if you want to apply the migration manually:
 
 ```bash
 alembic upgrade head
 ```
+
+## Tests
+
+- All you need to do to run is `pytest`
 
 ## Notes
 
