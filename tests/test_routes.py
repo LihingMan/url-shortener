@@ -5,6 +5,7 @@ from app.main import app
 from app.database import get_db
 from app.models.report import Report
 from app.models.shorturl import ShortURL
+from app.repository.shorturl_repository import NotFound
 
 # fixture for db dependency
 @pytest.fixture
@@ -25,6 +26,23 @@ def client(mock_db_session):
     yield TestClient(app)
     del app.dependency_overrides[get_db]
 
+@pytest.fixture
+def short_url_obj():
+    return ShortURL(id=1, original_url="http://example.com")
+
+@pytest.fixture
+def ip_address():
+    return "192.168.1.1"
+
+@pytest.fixture
+def geolocation_data():
+    return {"country": "Testland", "city": "Testville"}
+
+@pytest.fixture
+def mock_get_geo_from_ip(geolocation_data):
+    mock = MagicMock(return_value=geolocation_data)
+    return mock
+
 def test_read_form(client):
     response = client.get("/")
     assert response.status_code == 200
@@ -39,14 +57,17 @@ def test_shorten_url(client, mock_db_session):
     assert 'short_url' in response.json()
     mock_db_session.add.assert_called()
 
-def test_redirect_to_url(client, mock_db_session):
+def test_redirect_to_url(client, mock_db_session, mock_get_geo_from_ip, geolocation_data):
     url = "http://example.com"
     short_url = "abc123"
+
     mock_db_session.query.return_value.filter.return_value.first.return_value = MagicMock(original_url=url)
+    mock_get_geo_from_ip.return_value = geolocation_data
 
     response = client.get(f"/{short_url}", follow_redirects=False)
     assert response.status_code == 307  # status code for redirect
     assert response.headers['location'] == url
+    mock_db_session.add.assert_called()
 
 def test_redirect_to_url_not_found(client, mock_db_session):
     short_url = "unknown123"
