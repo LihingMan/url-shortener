@@ -1,11 +1,75 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>URL Shortener</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
   </head>
   <body>
-    <form action="/create-short-url" method="post">
-      <input type="url" name="url" required />
-      <button type="submit">Shorten</button>
-    </form>
+    <h1>URL Shortener</h1>
+    <div class="container">
+      <form id="shorten-form" action="/shorten" method="post">
+        <label for="url">Enter URL:</label>
+        <input type="url" id="url" name="url" required />
+        <button type="submit">Shorten</button>
+      </form>
+      <div id="shorten-result">
+        <!-- for display... -->
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("shorten-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+          const url = form.action;
+          try {
+            const response = await fetch(url, {
+              method: "POST",
+              body: formData,
+            });
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            displayShortenResult(data); // Function to display result
+          } catch (error) {
+            console.error("Error:", error);
+            alert(
+              "An error occurred while shortening the URL. Please try again."
+            );
+          }
+        });
+
+      function displayShortenResult(data) {
+        const resultDiv = document.getElementById("shorten-result");
+        resultDiv.innerHTML = `
+          <div class="result-item">
+              <strong>Short URL:</strong> <a href="${data.short_url}" target="_blank">${data.short_url}</a>
+              <div class="button-container">
+                  <button onclick="copyToClipboard('${data.short_url}')" title="Copy URL to clipboard">Copy</button>
+              </div>
+          </div>
+          <div class="result-item">
+              <strong>Original URL:</strong> ${data.target_url}
+          </div>
+        `;
+      }
+
+      function copyToClipboard(url) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            alert("URL copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+          });
+      }
+    </script>
   </body>
 </html>
