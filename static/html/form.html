@@ -1,11 +1,153 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>URL Shortener</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        text-align: center;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      form {
+        width: 100%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        margin-bottom: 20px;
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 10px;
+      }
+      input[type="url"] {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+        transition: box-shadow 0.3s ease; /* Smooth transition for shadow */
+      }
+      button:hover {
+        background-color: #45a049; /* Slightly darker green on hover */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow on hover */
+      }
+      .button-container {
+        margin-top: 15px; /* Adjust this value to increase spacing */
+      }
+      #shorten-result {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      .result-item {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      .result-item strong {
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
-    <form action="/create-short-url" method="post">
-      <input type="url" name="url" required />
-      <button type="submit">Shorten</button>
-    </form>
+    <h1>URL Shortener</h1>
+    <div class="container">
+      <form id="shorten-form" action="/shorten" method="post">
+        <label for="url">Enter URL:</label>
+        <input type="url" id="url" name="url" required />
+        <button type="submit">Shorten</button>
+      </form>
+      <div id="shorten-result">
+        <!-- for display... -->
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("shorten-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+          const url = form.action;
+          try {
+            const response = await fetch(url, {
+              method: "POST",
+              body: formData,
+            });
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            displayShortenResult(data); // Function to display result
+          } catch (error) {
+            console.error("Error:", error);
+            alert(
+              "An error occurred while shortening the URL. Please try again."
+            );
+          }
+        });
+
+      function displayShortenResult(data) {
+        const resultDiv = document.getElementById("shorten-result");
+        resultDiv.innerHTML = `
+          <div class="result-item">
+              <strong>Short URL:</strong> <a href="${data.short_url}" target="_blank">${data.short_url}</a>
+              <div class="button-container">
+                  <button onclick="copyToClipboard('${data.short_url}')" title="Copy URL to clipboard">Copy</button>
+              </div>
+          </div>
+          <div class="result-item">
+              <strong>Original URL:</strong> ${data.target_url}
+          </div>
+        `;
+      }
+
+      function copyToClipboard(url) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            alert("URL copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+          });
+      }
+    </script>
   </body>
 </html>
