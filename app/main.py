@@ -59,14 +59,13 @@ async def shorten_url(request: Request, url: str = Form(...), db: Session = Depe
         return {"short_url": short_url, "target_url": url, "title": "URL Shortener"}
 
     except Exception as e:
-        print(str(e))
+        log.error(f"Error shortening url: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/{short_url}", response_class=RedirectResponse)
 async def redirect_to_url(short_url: str, db: Session = Depends(get_db)):
         try:
             original_url = find_original_url(db, short_url)
-            print('HEHEHEHEHE', original_url)
             return RedirectResponse(url=original_url)
         except NotFound as e:
             return HTMLResponse(content=f"<h1>{str(e)}</h1>", status_code=404)
