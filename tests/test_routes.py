@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
-from app.main import app, get_db
+from app.main import app
+from app.database import get_db
 from app.models.report import Report
 from app.models.shorturl import ShortURL
 
