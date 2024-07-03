@@ -15,8 +15,6 @@ from app.repository.shorturl_repository import NotFound, find_or_insert_one, fin
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("uvicorn.error")
 
-Base.metadata.create_all(bind=engine)
-
 def run_migrations():
     log.info("Beginning migrations")
     alembic_cfg = Config("alembic.ini")
@@ -25,6 +23,7 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     log.info("Starting up")
+    Base.metadata.create_all(bind=engine)
     run_migrations()
     yield
     log.info("Shutting down")
@@ -42,7 +41,7 @@ templates = Jinja2Templates(directory="static/html")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_form(request: Request):
-    return templates.TemplateResponse("form.html", {"request": request})
+    return templates.TemplateResponse({"request": request}, ("form.html"))
 
 @app.post("/shorten")
 async def shorten_url(request: Request, url: str = Form(...), db: Session = Depends(get_db)):
