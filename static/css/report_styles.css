@@ -1,0 +1,57 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+h1 {
+  color: #0275d8;
+  text-align: center;
+}
+
+.container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.report-item {
+  background-color: #e9ecef;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.visit-history {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  text-align: center; /* Centers text in table cells */
+}
+
+.visit-history th,
+.visit-history td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center; /* Ensures the text is centered in the th and td */
+}
+
+.visit-history th {
+  background-color: #0275d8;
+  color: white;
+}
+
+.visit-history tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.visit-history tr:hover {
+  background-color: #ddd;
+}

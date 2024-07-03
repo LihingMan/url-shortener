@@ -1,6 +1,6 @@
 from app.database import get_db
 from app.helpers import generate_short_url, get_client_ip, get_geo_from_ip
-from app.repository.report_repository import insert_one
+from app.repository.report_repository import get_all_for_short_url, insert_one
 from app.repository.shorturl_repository import find_or_insert_one, find_original_url, NotFound
 from fastapi import APIRouter, HTTPException, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -18,7 +18,7 @@ templates = Jinja2Templates(directory="static/html")
 
 @router.get("/", response_class=HTMLResponse)
 async def read_form(request: Request):
-    return templates.TemplateResponse({"request": request}, "form.html")
+    return templates.TemplateResponse(request, "form.html")
 
 @router.post("/shorten")
 async def shorten_url(request: Request, url: str = Form(...), db: Session = Depends(get_db)):
@@ -32,7 +32,7 @@ async def shorten_url(request: Request, url: str = Form(...), db: Session = Depe
         # Construct full short URL
         short_url = f"{request.url.scheme}://{request.url.netloc}/{short_url_hash}"
 
-        return {"short_url": short_url, "target_url": url}
+        return {"short_url": short_url, "target_url": url, "short_url_hash": short_url_hash}
 
     except Exception as e:
         log.error(f"Error shortening url: {str(e)}")
@@ -53,3 +53,26 @@ async def redirect_to_url(short_url: str, request: Request, db: Session = Depend
     except Exception as e:
         log.error(f"error: {str(e)}")
         return HTMLResponse(content="<h1>Unexpected error redirecting</h1>", status_code=500)
+
+@router.get("/report/{short_url}", response_class=HTMLResponse)
+async def generate_report(request: Request, short_url: str, db: Session = Depends(get_db)):
+    try:
+        all_reports = get_all_for_short_url(db, short_url)
+        visit_history = []
+        for report in all_reports:
+            report_obj = {
+                "visited_at": report.visited_at,
+                "lat": "Not available",
+                "lon": "Not available",
+                "region_name": "Not available"
+            }
+            geolocation_success = report.geolocation["status"]
+            if geolocation_success == "success":
+                report_obj["lat"] = report.geolocation["lat"]
+                report_obj["lon"] = report.geolocation["lon"]
+                report_obj["region_name"] = report.geolocation["regionName"]
+            visit_history.append(report_obj)
+    except Exception as e:
+        log.error(f"error: {str(e)}")
+        return HTMLResponse(content="<h1>Unexpected error generating report</h1>", status_code=500)
+    return templates.TemplateResponse(request, "report.html", {"visit_history": visit_history ,"short_url": f"{request.url.scheme}://{request.url.netloc}/{short_url}"})

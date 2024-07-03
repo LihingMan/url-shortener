@@ -5,7 +5,8 @@ from app.main import app
 from app.database import get_db
 from app.models.report import Report
 from app.models.shorturl import ShortURL
-from app.repository.shorturl_repository import NotFound
+
+GEOLOCATION_DATA = {"regionName": "Testland", "lat": "15", "lon": "10", "status": "success"}
 
 # fixture for db dependency
 @pytest.fixture
@@ -36,12 +37,16 @@ def ip_address():
 
 @pytest.fixture
 def geolocation_data():
-    return {"country": "Testland", "city": "Testville"}
+    return GEOLOCATION_DATA
 
 @pytest.fixture
 def mock_get_geo_from_ip(geolocation_data):
     mock = MagicMock(return_value=geolocation_data)
     return mock
+
+@pytest.fixture
+def mock_get_all_for_short_url():
+    return [Report(short_url_id=1, visited_at="2024-07-03 11:00:00+00:00", ip_address="0.0.0.0", geolocation=GEOLOCATION_DATA)]
 
 def test_read_form(client):
     response = client.get("/")
@@ -57,17 +62,18 @@ def test_shorten_url(client, mock_db_session):
     assert 'short_url' in response.json()
     mock_db_session.add.assert_called()
 
-def test_redirect_to_url(client, mock_db_session, mock_get_geo_from_ip, geolocation_data):
+def test_redirect_to_url(client, mock_db_session, mock_get_geo_from_ip):
     url = "http://example.com"
     short_url = "abc123"
 
-    mock_db_session.query.return_value.filter.return_value.first.return_value = MagicMock(original_url=url)
-    mock_get_geo_from_ip.return_value = geolocation_data
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr("app.helpers.get_geo_from_ip", mock_get_geo_from_ip)
+        mock_db_session.query.return_value.filter.return_value.first.return_value = MagicMock(original_url=url)
 
-    response = client.get(f"/{short_url}", follow_redirects=False)
-    assert response.status_code == 307  # status code for redirect
-    assert response.headers['location'] == url
-    mock_db_session.add.assert_called()
+        response = client.get(f"/{short_url}", follow_redirects=False)
+        assert response.status_code == 307  # status code for redirect
+        assert response.headers['location'] == url
+        mock_db_session.add.assert_called()
 
 def test_redirect_to_url_not_found(client, mock_db_session):
     short_url = "unknown123"
@@ -76,3 +82,12 @@ def test_redirect_to_url_not_found(client, mock_db_session):
     response = client.get(f"/{short_url}")
     assert response.status_code == 404
     assert "Short URL does not exist!" in response.text
+
+def test_generate_report(client, mock_db_session):
+    short_url = "abc123"
+
+    mock_db_session.query.return_value.filter.return_value.all.return_value = [Report(short_url_id=1, visited_at="2024-07-03 11:00:00+00:00", ip_address="0.0.0.0", geolocation=GEOLOCATION_DATA)]
+    response = client.get(f"/report/{short_url}")
+    assert response.status_code == 200
+    assert "Report" in response.text
+    assert GEOLOCATION_DATA["regionName"] in response.text
