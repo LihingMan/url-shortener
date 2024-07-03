@@ -43,7 +43,7 @@ def test_redirect_to_url(client, mock_db_session):
     short_url = "abc123"
     mock_db_session.query.return_value.filter.return_value.first.return_value = MagicMock(original_url=url)
 
-    response = client.get(f"/{short_url}", allow_redirects=False)
+    response = client.get(f"/{short_url}", follow_redirects=False)
     assert response.status_code == 307  # status code for redirect
     assert response.headers['location'] == url
 
