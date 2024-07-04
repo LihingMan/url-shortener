@@ -48,19 +48,28 @@ def mock_get_geo_from_ip(geolocation_data):
 def mock_get_all_for_short_url():
     return [Report(short_url_id=1, visited_at="2024-07-03 11:00:00+00:00", ip_address="0.0.0.0", geolocation=GEOLOCATION_DATA)]
 
+@pytest.fixture
+def mock_get_title_tag_from_url():
+    return "titleawd"
+
 def test_read_form(client):
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers['content-type']
 
-def test_shorten_url(client, mock_db_session):
-    mock_db_session.query.return_value.filter.return_value.first.return_value = None
+def test_shorten_url(client, mock_db_session, mock_get_title_tag_from_url):
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr("app.helpers.get_title_tag_from_url", mock_get_title_tag_from_url)
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
 
-    url = "http://example.com"
-    response = client.post("/shorten", data={"url": url})
-    assert response.status_code == 200
-    assert 'short_url' in response.json()
-    mock_db_session.add.assert_called()
+        url = "http://example.com"
+        response = client.post("/shorten", data={"url": url})
+        assert response.status_code == 200
+        assert 'short_url' in response.json()
+        assert 'title' in response.json()
+        assert 'target_url' in response.json()
+        assert 'short_url_hash' in response.json()
+        mock_db_session.add.assert_called()
 
 def test_redirect_to_url(client, mock_db_session, mock_get_geo_from_ip):
     url = "http://example.com"

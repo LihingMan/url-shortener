@@ -1,5 +1,5 @@
 from app.database import get_db
-from app.helpers import generate_short_url, get_client_ip, get_geo_from_ip
+from app.helpers import generate_short_url, get_client_ip, get_geo_from_ip, get_title_tag_from_url
 from app.repository.report_repository import get_all_for_short_url, insert_one
 from app.repository.shorturl_repository import find_or_insert_one, find_original_url, NotFound
 from fastapi import APIRouter, HTTPException, Request, Depends, Form
@@ -23,6 +23,8 @@ async def read_form(request: Request):
 @router.post("/shorten")
 async def shorten_url(request: Request, url: str = Form(...), db: Session = Depends(get_db)):
     try:
+        title = await get_title_tag_from_url(url)
+
         # Generate short URL
         short_url_hash = generate_short_url(url)
         
@@ -32,7 +34,7 @@ async def shorten_url(request: Request, url: str = Form(...), db: Session = Depe
         # Construct full short URL
         short_url = f"{request.url.scheme}://{request.url.netloc}/{short_url_hash}"
 
-        return {"short_url": short_url, "target_url": url, "short_url_hash": short_url_hash}
+        return {"short_url": short_url, "target_url": url, "short_url_hash": short_url_hash, "title": title}
 
     except Exception as e:
         log.error(f"Error shortening url: {str(e)}")

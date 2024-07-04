@@ -1,5 +1,5 @@
+from bs4 import BeautifulSoup
 from fastapi import Request
-from app.models.shorturl import ShortURL
 import hashlib
 import logging
 import base62
@@ -36,3 +36,21 @@ async def get_geo_from_ip(ip_address: str):
         response.raise_for_status()
 
     return response.json()
+
+async def get_title_tag_from_url(url: str) -> str:
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+        title_tag = soup.find('title')
+
+        if title_tag is None:
+            return "-"
+
+        return title_tag.string
+
+    except Exception as e:
+        log.error(f"unexpected error when parsing for title: {str(e)}")
+        return "-"
