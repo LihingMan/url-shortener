@@ -1,7 +1,10 @@
-from unittest.mock import MagicMock
-from app.helpers import generate_short_url, get_client_ip
+from app.helpers import generate_short_url, get_client_ip, get_title_tag_from_url
+from bs4 import BeautifulSoup
 from starlette.datastructures import Headers
 from starlette.requests import Request
+from unittest.mock import MagicMock, AsyncMock
+import pytest
+import httpx
 
 def test_generate_short_url_basic():
     url = "https://www.example.com"
@@ -47,3 +50,15 @@ def test_get_client_ip_without_x_forwarded_for():
     request.client.host = '98.76.54.32'
     ip = get_client_ip(request)
     assert ip == '98.76.54.32'
+
+@pytest.mark.asyncio
+async def test_get_title_tag_from_url():
+    url = "https://example.com"
+    title = await get_title_tag_from_url(url)
+    assert title == "Example Domain"
+
+@pytest.mark.asyncio
+async def test_get_title_tag_from_url_error():
+    url = "https://exampletest123coingecko.com"
+    title = await get_title_tag_from_url(url)
+    assert title == "-"
