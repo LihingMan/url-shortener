@@ -20,12 +20,32 @@
     </div>
 
     <script>
+      // store a salt per session
+      function generateSessionSalt() {
+        if (!sessionStorage.getItem("sessionSalt")) {
+          sessionStorage.setItem(
+            "sessionSalt",
+            btoa(
+              String.fromCharCode.apply(
+                null,
+                crypto.getRandomValues(new Uint8Array(16))
+              )
+            )
+          );
+        }
+        return sessionStorage.getItem("sessionSalt");
+      }
+
       document
         .getElementById("shorten-form")
         .addEventListener("submit", async function (event) {
           event.preventDefault();
           const form = event.target;
           const formData = new FormData(form);
+
+          const sessionSalt = generateSessionSalt(); // aappend salt to form data
+          formData.append("salt", sessionSalt);
+
           const url = form.action;
           try {
             const response = await fetch(url, {

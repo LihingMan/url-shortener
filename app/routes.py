@@ -21,16 +21,16 @@ async def read_form(request: Request):
     return templates.TemplateResponse(request, "form.html")
 
 @router.post("/shorten")
-async def shorten_url(request: Request, url: str = Form(...), db: Session = Depends(get_db)):
+async def shorten_url(request: Request, url: str = Form(...), salt = Form(...), db: Session = Depends(get_db)):
     try:
         title = await get_title_tag_from_url(url)
 
         # Generate short URL
-        short_url_hash = generate_short_url(url)
-        
+        short_url_hash = generate_short_url(url+salt)
+
         # Insert into database
         find_or_insert_one(db, short_url_hash, url)
-        
+
         # Construct full short URL
         short_url = f"{request.url.scheme}://{request.url.netloc}/{short_url_hash}"
 
