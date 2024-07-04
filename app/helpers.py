@@ -37,7 +37,6 @@ async def get_geo_from_ip(ip_address: str):
 
     return response.json()
 
-# TODO test
 async def get_title_tag_from_url(url: str) -> str:
     try:
         async with httpx.AsyncClient() as client:
