@@ -5,11 +5,14 @@ CoinGecko Dev Test - URL Shortener
 ## Deployment Link
 
 <https://url-shortener-6jx1.onrender.com>
+- I'm on a free tier on <https://render.com/> so it might take some time sometimes when visiting the page (upwards of 50 seconds according to Render) - this is due to them spinning down the service with inactivity
+- If it never responds, Render may have gotten stuck on spinning up the service
+- If this does happen, please let me know and I will restart it manually
 
 ## Implementation
 
 - Python FastAPI serving HTML
-- PostgreSQL as the database
+- PostgreSQL database
 - Containerised for deployment with Docker
 - CI is done with Github Actions, which runs the unit tests
 
